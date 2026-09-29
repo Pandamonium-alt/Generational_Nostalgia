@@ -1,0 +1,67 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #e9c9a3; }
+
+/* Escenario 16:9 que se comporta como "cover": los vinilos
+   siempre quedan alineados con los micrófonos del fondo. */
+.stage {
+  --sw: max(100vw, 100vh * 16 / 9);   /* ancho real del escenario */
+  position: absolute;
+  top: 50%; left: 50%;
+  width: var(--sw);
+  height: max(100vh, 100vw * 9 / 16);
+  transform: translate(-50%, -50%);
+  background: url("background.png") center / 100% 100% no-repeat;
+}
+
+.vinyl {
+  --w: calc(var(--sw) * 0.156);   /* tamaño del sobre y del disco */
+  --show: 0.36;    /* fracción del sobre visible en pantalla (solo un extremo) */
+  --peek: 6%;      /* cuánto asoma el disco en reposo */
+  --out: 40%;      /* cuánto sale con hover / reproduciendo */
+  position: absolute;
+  top: 62%;        /* altura vertical */
+  width: var(--w);
+  aspect-ratio: 1;
+  cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+/* El sobre queda casi fuera de pantalla; el (sw - 100vw)/2 compensa
+   el recorte del escenario en pantallas que no son 16:9 */
+.vinyl.left  { --dir: 1;  left:  calc((var(--sw) - 100vw) / 2 - var(--w) * (1 - var(--show))); }
+.vinyl.right { --dir: -1; right: calc((var(--sw) - 100vw) / 2 - var(--w) * (1 - var(--show))); }
+
+.sleeve {
+  position: absolute; inset: 0; z-index: 2;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .35);
+}
+.sleeve img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.disc-track {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  transform: translateX(calc(var(--dir) * var(--peek)));
+  transition: transform .7s cubic-bezier(.22, .8, .3, 1);
+}
+.vinyl:not(.locked):hover .disc-track,
+.vinyl.playing .disc-track { transform: translateX(calc(var(--dir) * var(--out))); }
+
+.disc {
+  width: 96%; aspect-ratio: 1; border-radius: 50%;
+  background:
+    conic-gradient(rgba(255,255,255,0) 0 8%, rgba(255,255,255,.14) 13%, rgba(255,255,255,0) 20%,
+                   rgba(255,255,255,0) 58%, rgba(255,255,255,.14) 63%, rgba(255,255,255,0) 70%, rgba(255,255,255,0)),
+    repeating-radial-gradient(circle, #0a0a0a 0 2px, #1b1b1b 3px 3.5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
+  display: flex; align-items: center; justify-content: center;
+  animation: spin 3s linear infinite;
+  animation-play-state: paused;
+}
+.vinyl.playing .disc { animation-play-state: running; }
+
+.label {
+  width: 34%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #0a0a0a 0 9%, #8e2434 10%);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
